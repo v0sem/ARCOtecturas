@@ -143,7 +143,7 @@ Op2 <= Rdata2 when ALUSrc = '0' else ExtSign;
 
 Wdata3 <= DDataIn when MemToReg = '1' else ALURes;
 
-Shift2 <= ExtSign(31 downto 2) & "00";
+Shift2 <= ExtSign(29 downto 0) & "00";
 BranchAdd <= Shift2 + Add4;
 Add4 <= AuxAddr + 4;
 Mux1 <= BranchAdd when ZBranch = '1' else Add4;

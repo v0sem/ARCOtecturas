@@ -80,7 +80,7 @@ component control_unit
 	);
 end component;
 
-signal Rdata1, Rdata2, Wdata3, Op2, ALURes, ExtSign, Shift2, BranchAdd, Add4, AuxAddr : std_logic_vector(31 downto 0); --TODO: Wdata3 mux, Op2 mux, ALURes mux,
+signal Rdata1, Rdata2, Wdata3, Op2, ALURes, ExtSign, Shift2, BranchAdd, Add4, AuxAddr, Mux1 : std_logic_vector(31 downto 0); --TODO: Wdata3 mux, Op2 mux, ALURes mux,
 
 signal A3 : std_logic_vector(4 downto 0);
 
@@ -88,24 +88,50 @@ signal ALUCon : std_logic_vector(3 downto 0);
 
 signal ALUOp : std_logic_vector(2 downto 0);
 
-signal RegDst, Z, Branch, ZBranch, MemToReg, ALUSrc, RegWrite : std_logic; --TODO: Z and Branch, MEmtoreg mux
+signal RegDst, Z, Branch, ZBranch, MemToReg, ALUSrc, RegWrite, MemRead, MemWrite : std_logic;
+
+-- IF/ID signals
+signal Add4_id, Ittr_id : std_logic_vector(31 downto 0);
+
+-- ID/EX signals
+signal Add4_ex, Rdata1_ex, Rdata2_ex, ExtSign_ex : std_logic_vector(31 downto 0);
+
+signal Ittr20_ex, Ittr15_ex : std_logic_vector(4 downto 0);
+
+signal ALUOp_ex : std_logic_vector(2 downto 0);
+
+signal RegDst_ex, ALUSrc_ex, WBRegWrite_ex, WBMemToReg_ex, MBranch_ex, MMemRead_ex, MMemWrite_ex : std_logic; 
+
+-- EX/MEM
+signal Rdata2_mem, ALURes_mem, BranchAdd_mem : std_logic_vector(31 downto 0);
+
+signal A3_mem : std_logic_vector(4 downto 0);
+
+signal Branch_mem, MemWrite_mem, MemRead_Mem, Z_mem : std_logic;
+
+-- EX/WB
+signal DDataIn_wb, ALURes_wb : std_logic_vector(31 downto 0);
+
+signal A3_wb : std_logic_vector(4 downto 0);
+
+signal WBRegWrite_mem, WBMemToReg_mem, RegWrite_wb, MemToReg_wb : std_logic;
 
 begin
 
 c0: reg_bank port map (
 	Clk => Clk,
 	Reset => Reset,
-	A1 => IDataIn(25 downto 21),
+	A1 => Ittr_id(25 downto 21),
 	Rd1 => Rdata1,
-	A2 => IDataIn(20 downto 16),
+	A2 => Ittr_id(20 downto 16),
 	Rd2 => Rdata2,
-	A3 => A3,
+	A3 => A3_wb,
 	Wd3 => Wdata3,
-	We3 => RegWrite
+	We3 => RegWrite_wb
 );
 
 c1: alu port map (
-	OpA => Rdata1,
+	OpA => Rdata1_ex,
 	OpB => Op2,
 	Control => ALUCon,
 	Result => ALURes,
@@ -113,17 +139,17 @@ c1: alu port map (
 );
 
 c2: alu_control port map (
-	ALUOp => ALUOp,
-	Funct => IDataIn(5 downto 0),
+	ALUOp => ALUOp_ex,
+	Funct => ExtSign_ex(5 downto 0),
 	ALUControl => ALUCon
 );
 
 c3: control_unit port map (
-	OpCode => IDataIn(31 downto 26),
+	OpCode => Ittr_id(31 downto 26),
 	Branch => Branch,
 	MemToReg => MemToReg,
-	MemWrite => DWrEn,
-	MemRead => DRdEn,
+	MemWrite => MemWrite,
+	MemRead => MemRead,
 	ALUSrc => ALUSrc,
 	ALUOp => ALUOp,
 	RegWrite => RegWrite,
@@ -132,26 +158,30 @@ c3: control_unit port map (
 
 --AND
 
-ZBranch <= Z and Branch;
+ZBranch <= Z_mem and Branch_mem;
 
 --Multiplexores
 
-A3 <= IDataIn(15 downto 11) when RegDst = '1' else IDataIn(20 downto 16);
+A3 <= Ittr15_ex when RegDst = '1' else Ittr20_ex;
 
-ExtSign <= "1111111111111111" & IDataIn(15 downto 0) when IDataIn(15) = '1' else "0000000000000000" & IDataIn(15 downto 0); 
-Op2 <= Rdata2 when ALUSrc = '0' else ExtSign;
+ExtSign <= "1111111111111111" & Ittr_id(15 downto 0) when Ittr_id(15) = '1' else "0000000000000000" & Ittr_id(15 downto 0); 
+Op2 <= Rdata2_ex when ALUSrc_ex = '0' else ExtSign_ex;
 
-Wdata3 <= DDataIn when MemToReg = '1' else ALURes;
+Wdata3 <= DDataIn_wb when MemToReg_wb = '1' else ALURes_wb;
 
-Shift2 <= ExtSign(31 downto 2) & "00";
-BranchAdd <= Shift + Add4;
+Shift2 <= ExtSign_ex(29 downto 0) & "00";
+BranchAdd <= Shift2 + Add4_ex;
 Add4 <= AuxAddr + 4;
-IAddr <= BranchAdd when ZBranch = '1' else Add4;
+Mux1 <= BranchAdd when ZBranch = '1' else Add4;
 
 --OUTS
 
-DAddr <= ALURes;
-DDataOut <= RData2;
+DAddr <= ALURes_mem;
+DDataOut <= RData2_mem;
+DWrEn <= MemWrite_mem;
+DRdEn <= MemRead_mem;
+
+IAddr <= AuxAddr;
 
 
 --Clock and Reset
@@ -160,9 +190,96 @@ process (Clk, Reset)
 		if Reset = '1' then
 			AuxAddr <= (others => '0');
 		elsif rising_edge(Clk) then
-			AuxAddr <= IAddr;
-		end if;
-	end process;
+			AuxAddr <= Mux1;
+	end if;
+end process;
 
-	
+process (Clk, Reset)
+	begin
+		if Reset = '1' then
+			Add4_id <= (others => '0');
+			Ittr_id <= (others => '0');
+		elsif rising_edge(Clk) then
+			Add4_id <= Add4;
+			Ittr_id <= IDataIn;
+		end if;
+end process;
+
+process (Clk, Reset)
+	begin
+		if Reset = '1' then
+			WBRegWrite_ex <= '0';
+			WBMemToReg_ex <= '0';
+			MBranch_ex <= '0';
+			MMemRead_ex <= '0';
+			MMemWrite_ex <= '0';
+			RegDst_ex <= '0';
+			ALUSrc_ex <= '0';
+			ALUOp_ex <= "111";
+			Add4_ex <= x"00000000";
+			Rdata1_ex <= x"00000000";
+			Rdata2_ex <= x"00000000";
+			ExtSign_ex <= x"00000000";
+			Ittr20_ex <= "00000";
+			Ittr15_ex <= "00000";
+		elsif rising_edge(Clk) then
+			WBRegWrite_ex <= RegWrite;
+			WBMemToReg_ex <= MemToReg;
+			MBranch_ex <= Branch;
+			MMemRead_ex <= MemRead;
+			MMemWrite_ex <= MemWrite;
+			RegDst_ex <= RegDst;
+			ALUSrc_ex <= ALUSrc;
+			ALUOp_ex <= ALUOp;
+			Add4_ex <= Add4_id;
+			Rdata1_ex <= Rdata1;
+			Rdata2_ex <= Rdata2;
+			ExtSign_ex <= ExtSign;
+			Ittr20_ex <= Ittr_id(20 downto 16);
+			Ittr15_ex <= Ittr_id(15 downto 10);
+		end if;
+end process;
+
+process (Clk, Reset)
+	begin
+		if Reset = '1' then
+			WBRegWrite_mem <= '0';
+			WBMemToReg_mem <= '0';
+			Branch_mem <= '0';
+			MemWrite_mem <= '0';
+			MemRead_mem <= '0';
+			Z_mem <= '0';
+			ALURes_mem <= x"00000000";
+			Rdata2_mem <= x"00000000";
+			A3_mem <= x"00000000";
+		elsif rising_edge(Clk) then
+			WBRegWrite_mem <= WBMemWrite_ex;
+			WBMemToReg_mem <= WBMemToReg_ex;
+			Branch_mem <= MBranch_ex;
+			MemWrite_mem <= MMemWrite_ex;
+			MemRead_mem <= MMemRead_ex;
+			Z_mem <= Z;
+			ALURes_mem <= ALURes;
+			Rdata2_mem <= Rdata2_ex;
+			A3_mem <= A3;
+		end if;
+end process;
+
+process (Clk, Reset)
+	begin
+		if Reset = '1' then
+			RegWrite_wb <= '0';
+			MemToReg_wb <= '0';
+			DDataIn_wb <= x"00000000";
+			ALURes_wb <= x"00000000";
+			A3_wb <= x"00000000";
+		elsif rising_edge(Clk) then
+			RegWrite_wb <= WBRegWrite_mem;
+			MemToReg_wb <= WBMemToReg_wb;
+			DDataIn_wb <= DDataIn;
+			ALURes_wb <= ALURes_mem;
+			A3_wb <= A3_mem;
+		end if;
+end process;
+
 end architecture;

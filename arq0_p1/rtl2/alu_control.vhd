@@ -39,6 +39,7 @@ begin
             when OP_OR => ALUControl <= "0111";
             when OP_SUB => ALUControl <= "0001";
             when OP_XOR => ALUControl <= "0110";
+            when others => ALUControl <= "1111";
          end case;
 
       elsif ALUOp = "000" then
@@ -48,10 +49,10 @@ begin
          ALUControl <= "0001";
       
       elsif ALUOp = "011" then
-         ALUControl <= "1110"
+         ALUControl <= "1110";
 
       elsif ALUOp = "100" then
-         ALUControl <= "0010"
+         ALUControl <= "0010";
       else
          ALUControl <= "1111";
       end if;

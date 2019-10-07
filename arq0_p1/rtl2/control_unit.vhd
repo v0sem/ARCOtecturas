@@ -53,33 +53,34 @@ begin
 		MemWrite <= '0';
 		MemRead <= '0';
 		ALUSrc <= '0';
-		ALUOp <= "00";
+		ALUOp <= "000";
 		RegWrite <= '0';
 		RegDst <= '0';
 	
-	case OpCode is
-		when OP_RTYPE	=> 	RegDst		<= '1';
-							RegWrite	<= '1';
-							ALUOp		<= "010";
+		case OpCode is
+			when OP_RTYPE	=> 	RegDst		<= '1';
+								RegWrite	<= '1';
+								ALUOp		<= "010";
 		
-		when OP_BEQ		=>	Branch 		<= '1';
-							ALUOp		<= "001";
+			when OP_BEQ		=>	Branch 		<= '1';
+								ALUOp		<= "001";
 		
-		when OP_SW		=>	MemWrite	<= '1';
-							ALUSrc		<= '1';
+			when OP_SW		=>	MemWrite	<= '1';
+								ALUSrc		<= '1';
 
-		when OP_LW		=>	MemToReg	<= '1';
-							RegWrite	<= '1';
-							ALUSrc		<= '1';
+			when OP_LW		=>	MemToReg	<= '1';
+								RegWrite	<= '1';
+								ALUSrc		<= '1';
 		
-		when OP_LUI		=>	ALUSrc		<= '1';
-							RegWrite	<= '1';
-							ALUOp		<= "011";
+			when OP_LUI		=>	ALUSrc		<= '1';
+								RegWrite	<= '1';
+								ALUOp		<= "011";
 		
-		when OP_SLTI	=>	ALUSrc		<= '1';
-							RegWrite	<= '1';
-							ALUOp		<= "100";
+			when OP_SLTI	=>	ALUSrc		<= '1';
+								RegWrite	<= '1';
+								ALUOp		<= "100";
+			when others =>	ALUOp <= "111"; --nop?
 
-	end case;
-
+		end case;
+	end process;
 end architecture;

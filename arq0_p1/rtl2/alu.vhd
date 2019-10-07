@@ -41,10 +41,11 @@ architecture rtl of alu is
 
    -- Seniales intermedias:
    signal subExt    : std_logic_vector (32 downto 0); -- resta extendida a 33 bits
-   signal sigResult : std_logic_vector (31 downto 0); -- alias interno de Result
+   signal sigResult, Aux : std_logic_vector (31 downto 0); -- alias interno de Result
 
 begin
-
+  
+   Aux <= (0 => '1', others => '0') when (OpA < OpB) else (others => '0'); 
    subExt <= (OpA(31) & OpA) - (OpB(31) & OpB);
 
    process (Control, OpA, OpB, subExt)
@@ -56,10 +57,10 @@ begin
          when ALU_AND => sigResult <= OpA and OpB;
          when ALU_SUB => sigResult <= subExt (31 downto 0);
          when ALU_ADD => sigResult <= OpA + OpB;
-         when ALU_SLTI => sigResult <= (32 => '1', others => '0') when OpA < OpB else (others => '0');
+         when ALU_SLTI => sigResult <= Aux;
          when ALU_SLT => sigResult <= x"0000000" & "000" & subExt(32);
          when ALU_S16 => sigResult <= OpB (15 downto 0) & x"0000";
-         when ALU_LUI => sigResult <= OpA + OpB (15 downto 0) & x"0000";
+         when ALU_LUI => sigResult <= OpA + (OpB (15 downto 0) & x"0000");
          when others => sigResult <= (others => '0');
       end case;
    end process;
