@@ -79,7 +79,8 @@ begin
 			when OP_SLTI	=>	ALUSrc		<= '1';
 								RegWrite	<= '1';
 								ALUOp		<= "100";
-			when others =>	ALUOp <= "111"; --nop?
+			when others =>
+								ALUOp <= "111"; --nop?
 
 		end case;
 	end process;

@@ -152,7 +152,6 @@ Mux1 <= BranchAdd when ZBranch = '1' else Add4;
 
 DAddr <= ALURes;
 DDataOut <= RData2;
-IAddr <= AuxAddr;
 
 
 --Clock and Reset

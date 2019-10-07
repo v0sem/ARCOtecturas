@@ -40,8 +40,8 @@ architecture rtl of alu is
    constant ALU_LUI  : t_aluControl := "1110"; 
 
    -- Seniales intermedias:
-   signal subExt    : std_logic_vector (32 downto 0); -- resta extendida a 33 bits
-   signal sigResult, Aux : std_logic_vector (31 downto 0); -- alias interno de Result
+   signal subExt, Aux    : std_logic_vector (32 downto 0); -- resta extendida a 33 bits
+   signal sigResult : std_logic_vector (31 downto 0); -- alias interno de Result
 
 begin
   
