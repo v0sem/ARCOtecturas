@@ -236,7 +236,7 @@ process (Clk, Reset)
 			Rdata2_ex <= Rdata2;
 			ExtSign_ex <= ExtSign;
 			Ittr20_ex <= Ittr_id(20 downto 16);
-			Ittr15_ex <= Ittr_id(15 downto 10);
+			Ittr15_ex <= Ittr_id(15 downto 11);
 		end if;
 end process;
 
@@ -251,9 +251,9 @@ process (Clk, Reset)
 			Z_mem <= '0';
 			ALURes_mem <= x"00000000";
 			Rdata2_mem <= x"00000000";
-			A3_mem <= x"00000000";
+			A3_mem <= "00000";
 		elsif rising_edge(Clk) then
-			WBRegWrite_mem <= WBMemWrite_ex;
+			WBRegWrite_mem <= WBRegWrite_ex;
 			WBMemToReg_mem <= WBMemToReg_ex;
 			Branch_mem <= MBranch_ex;
 			MemWrite_mem <= MMemWrite_ex;
@@ -272,10 +272,10 @@ process (Clk, Reset)
 			MemToReg_wb <= '0';
 			DDataIn_wb <= x"00000000";
 			ALURes_wb <= x"00000000";
-			A3_wb <= x"00000000";
+			A3_wb <= "00000";
 		elsif rising_edge(Clk) then
 			RegWrite_wb <= WBRegWrite_mem;
-			MemToReg_wb <= WBMemToReg_wb;
+			MemToReg_wb <= WBMemToReg_mem;
 			DDataIn_wb <= DDataIn;
 			ALURes_wb <= ALURes_mem;
 			A3_wb <= A3_mem;
