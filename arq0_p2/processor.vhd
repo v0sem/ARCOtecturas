@@ -81,7 +81,7 @@ component control_unit
 	);
 end component;
 
-signal Rdata1, Rdata2, Wdata3, Op2, ALURes, ExtSign, Shift2, BranchAdd, Add4, AuxAddr, Mux1 : std_logic_vector(31 downto 0); --TODO: Wdata3 mux, Op2 mux, ALURes mux,
+signal Rdata1, Rdata2, Wdata3, Op1, Op2, ALURes, ExtSign, Shift2, BranchAdd, Add4, AuxAddr, Mux1 : std_logic_vector(31 downto 0); --TODO: Wdata3 mux, Op2 mux, ALURes mux,
 
 signal A3 : std_logic_vector(4 downto 0);
 
@@ -97,7 +97,7 @@ signal Add4_id, Ittr_id : std_logic_vector(31 downto 0);
 -- ID/EX signals
 signal Add4_ex, Rdata1_ex, Rdata2_ex, ExtSign_ex : std_logic_vector(31 downto 0);
 
-signal Ittr20_ex, Ittr15_ex : std_logic_vector(4 downto 0);
+signal Ittr20_ex, Ittr15_ex, Ittr25_ex : std_logic_vector(4 downto 0);
 
 signal ALUOp_ex : std_logic_vector(2 downto 0);
 
@@ -132,7 +132,7 @@ c0: reg_bank port map (
 );
 
 c1: alu port map (
-	OpA => Rdata1_ex,
+	OpA => Op1,
 	OpB => Op2,
 	Control => ALUCon,
 	Result => ALURes,
@@ -167,7 +167,7 @@ ZBranch <= Z_mem and Branch_mem;
 A3 <= Ittr15_ex when RegDst = '1' else Ittr20_ex;
 
 ExtSign <= "1111111111111111" & Ittr_id(15 downto 0) when Ittr_id(15) = '1' else "0000000000000000" & Ittr_id(15 downto 0); 
-Op2 <= Rdata2_ex when ALUSrc_ex = '0' else ExtSign_ex;
+Op2 <= Op2_forw when ALUSrc_ex = '0' else ExtSign_ex;
 
 Wdata3 <= DDataIn_wb when MemToReg_wb = '1' else ALURes_wb;
 
@@ -176,6 +176,34 @@ BranchAdd <= Shift2 + Add4_ex;
 Add4 <= AuxAddr + 4;
 JumpOrBranch <= Jump_mem or ZBranch;
 Mux1 <= BranchAdd_mem when JumpOrBranch = '1' else Add4;
+
+--Mux 3 a 1 para OpA
+with ForwA select Op1 <=
+	Rdata1_ex when "00",
+	FMdata1_ex when "01",
+	FWBdata1_ex when "10",
+	(others => '0') when "11";
+
+--Mux 3 a 1 para 
+	
+with ForwB select Op2_forw <=
+	Rdata2_ex when "00",
+	FMdata2_ex when "01",
+	FWBdata2_ex when "10",
+	(others => '0') when "11";
+
+
+--FORWARDING UNIT
+ForwA <= 	"10" when ((WBRegWrite_mem = '1') and (A3_mem /= "00000") and (A3_mem = Ittr25_ex)) else --Forwarding de MEM
+			"01" when ((RegWrite_wb = '1') and (A3_wb /= "00000") and (A3_wb = Ittr25_ex)) else
+			"00";
+
+ForwB <= 	"10" when ((WBRegWrite_mem = '1') and (A3_mem /= "00000") and (A3_mem = Ittr20_ex)) else --Forwarding de MEM
+			"01" when ((RegWrite_wb = '1') and (A3_wb /= "00000") and (A3_wb = Ittr20_ex)) else
+			"00";
+
+--HAZARD DETECTION UNIT
+Bub <= '1' when MMemRead_ex = '1' and ((A3 = Ittr_id(25 downto 21)) or (A3 = Ittr_id(20 downto 16))) else '0';
 
 --OUTS
 
@@ -240,6 +268,7 @@ process (Clk, Reset)
 			ExtSign_ex <= ExtSign;
 			Ittr20_ex <= Ittr_id(20 downto 16);
 			Ittr15_ex <= Ittr_id(15 downto 11);
+			Ittr25_ex <= Ittr_id(25 downto 21);
 			Jump_ex <= Jump;
 		end if;
 end process;
