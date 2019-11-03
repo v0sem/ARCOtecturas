@@ -81,7 +81,7 @@ component control_unit
 	);
 end component;
 
-signal Rdata1, Rdata2, Wdata3, Op1, Op2, Op2_forw, ALURes, ExtSign, Shift2, BranchAdd, Add4, AuxAddr, Mux1 : std_logic_vector(31 downto 0); --TODO: Wdata3 mux, Op2 mux, ALURes mux,
+signal Rdata1, Rdata2, Wdata3, Op1, Op2, Op2_forw, ALURes, ExtSign, Shift2, BranchAdd, Add4, AuxAddr, Mux1, JumpAddr, JumpAddr_ex, JumpAddr_mem : std_logic_vector(31 downto 0); --TODO: Wdata3 mux, Op2 mux, ALURes mux,
 
 signal A3 : std_logic_vector(4 downto 0);
 
@@ -166,7 +166,7 @@ ZBranch <= Z_mem and Branch_mem;
 
 --Multiplexores
 
-A3 <= Ittr15_ex when RegDst = '1' else Ittr20_ex;
+A3 <= Ittr15_ex when RegDst_ex = '1' else Ittr20_ex;
 
 ExtSign <= "1111111111111111" & Ittr_id(15 downto 0) when Ittr_id(15) = '1' else "0000000000000000" & Ittr_id(15 downto 0);
 Op2 <= Op2_forw when ALUSrc_ex = '0' else ExtSign_ex;
@@ -176,8 +176,12 @@ Wdata3 <= DDataIn_wb when MemToReg_wb = '1' else ALURes_wb;
 Shift2 <= ExtSign_ex(29 downto 0) & "00";
 BranchAdd <= Shift2 + Add4_ex;
 Add4 <= AuxAddr + 4;
-JumpOrBranch <= Jump_mem or ZBranch;
-Mux1 <= BranchAdd_mem when JumpOrBranch = '1' else Add4;
+
+Mux1 <= BranchAdd_mem when ZBranch = '1' and Jump_mem = '0' else 
+		Add4 when ZBranch = '0' and Jump_mem = '0' else
+		JumpAddr_mem;
+
+JumpAddr <= Add4_id(31 downto 28) & Ittr_id(25 downto 0) & "00";
 
 --Mux 3 a 1 para OpA
 with ForwA select Op1 <=
@@ -213,7 +217,6 @@ DAddr <= ALURes_mem;
 DDataOut <= RData2_mem;
 DWrEn <= MemWrite_mem;
 DRdEn <= MemRead_mem;
-
 IAddr <= AuxAddr;
 
 --Clock and Reset
@@ -239,7 +242,7 @@ end process;
 
 process (Clk, Reset, Bub)
 	begin
-		if Reset = '1' or Bub = '1' then
+		if Reset = '1' or (Bub = '1' and rising_edge(Clk)) then
 			WBRegWrite_ex <= '0';
 			WBMemToReg_ex <= '0';
 			MBranch_ex <= '0';
@@ -256,6 +259,7 @@ process (Clk, Reset, Bub)
 			Ittr20_ex <= "00000";
 			Ittr15_ex <= "00000";
 			Jump_ex <= '0';
+			JumpAddr_ex <= x"00000000";
 		elsif rising_edge(Clk) then
 			WBRegWrite_ex <= RegWrite;
 			WBMemToReg_ex <= MemToReg;
@@ -273,6 +277,7 @@ process (Clk, Reset, Bub)
 			Ittr15_ex <= Ittr_id(15 downto 11);
 			Ittr25_ex <= Ittr_id(25 downto 21);
 			Jump_ex <= Jump;
+			JumpAddr_ex <= JumpAddr;
 		end if;
 end process;
 
@@ -290,6 +295,7 @@ process (Clk, Reset)
 			Rdata2_mem <= x"00000000";
 			A3_mem <= "00000";
 			Jump_mem <= '0';
+			JumpAddr_mem <= x"00000000";
 		elsif rising_edge(Clk) then
 			WBRegWrite_mem <= WBRegWrite_ex;
 			WBMemToReg_mem <= WBMemToReg_ex;
@@ -302,6 +308,7 @@ process (Clk, Reset)
 			Rdata2_mem <= Rdata2_ex;
 			A3_mem <= A3;
 			Jump_mem <= Jump_ex;
+			JumpAddr_mem <= JumpAddr_ex;
 		end if;
 end process;
 
