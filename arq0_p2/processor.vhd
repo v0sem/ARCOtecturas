@@ -25,7 +25,7 @@ entity processor is
 	);
 end processor;
 
-architecture rtl of processor is 
+architecture rtl of processor is
 
 component reg_bank
 	port (
@@ -101,7 +101,7 @@ signal Ittr20_ex, Ittr15_ex, Ittr25_ex : std_logic_vector(4 downto 0);
 
 signal ALUOp_ex : std_logic_vector(2 downto 0);
 
-signal RegDst_ex, ALUSrc_ex, WBRegWrite_ex, WBMemToReg_ex, MBranch_ex, MMemRead_ex, MMemWrite_ex, Jump_ex : std_logic; 
+signal RegDst_ex, ALUSrc_ex, WBRegWrite_ex, WBMemToReg_ex, MBranch_ex, MMemRead_ex, MMemWrite_ex, Jump_ex : std_logic;
 
 -- EX/MEM
 signal Rdata2_mem, ALURes_mem, BranchAdd_mem : std_logic_vector(31 downto 0);
@@ -166,7 +166,7 @@ ZBranch <= Z_mem and Branch_mem;
 
 A3 <= Ittr15_ex when RegDst = '1' else Ittr20_ex;
 
-ExtSign <= "1111111111111111" & Ittr_id(15 downto 0) when Ittr_id(15) = '1' else "0000000000000000" & Ittr_id(15 downto 0); 
+ExtSign <= "1111111111111111" & Ittr_id(15 downto 0) when Ittr_id(15) = '1' else "0000000000000000" & Ittr_id(15 downto 0);
 Op2 <= Op2_forw when ALUSrc_ex = '0' else ExtSign_ex;
 
 Wdata3 <= DDataIn_wb when MemToReg_wb = '1' else ALURes_wb;
@@ -184,8 +184,8 @@ with ForwA select Op1 <=
 	FWBdata1_ex when "10",
 	(others => '0') when "11";
 
---Mux 3 a 1 para 
-	
+--Mux 3 a 1 para
+
 with ForwB select Op2_forw <=
 	Rdata2_ex when "00",
 	FMdata2_ex when "01",
@@ -213,31 +213,32 @@ DWrEn <= MemWrite_mem;
 DRdEn <= MemRead_mem;
 
 IAddr <= AuxAddr;
+BubAddr <= AuxAddr;
 
 --Clock and Reset
-process (Clk, Reset)
+process (Clk, Reset, Bub)
 	begin
 		if Reset = '1' then
 			AuxAddr <= (others => '0');
-		elsif rising_edge(Clk) then
+		elsif rising_edge(Clk) and Bub = '0' then
 			AuxAddr <= Mux1;
 	end if;
 end process;
 
-process (Clk, Reset)
+process (Clk, Reset, Bub)
 	begin
 		if Reset = '1' then
 			Add4_id <= (others => '0');
 			Ittr_id <= (others => '0');
-		elsif rising_edge(Clk) then
+		elsif rising_edge(Clk) and Bub = '0' then
 			Add4_id <= Add4;
 			Ittr_id <= IDataIn;
 		end if;
 end process;
 
-process (Clk, Reset)
+process (Clk, Reset, Bub)
 	begin
-		if Reset = '1' then
+		if Reset = '1' or Bub = '1' then
 			WBRegWrite_ex <= '0';
 			WBMemToReg_ex <= '0';
 			MBranch_ex <= '0';
