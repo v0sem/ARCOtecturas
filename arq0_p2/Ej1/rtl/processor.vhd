@@ -305,7 +305,7 @@ process (Clk, Reset)
 			MemRead_mem <= MMemRead_ex;
 			Z_mem <= Z;
 			ALURes_mem <= ALURes;
-			Rdata2_mem <= Rdata2_ex;
+			Rdata2_mem <= Op2_forw;
 			A3_mem <= A3;
 			Jump_mem <= Jump_ex;
 			JumpAddr_mem <= JumpAddr_ex;
