@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- Universidad Autonoma de Madrid
 -- Escuela Politecnica Superior
--- Laboratorio de Arq0 2019-2020
+-- Laboratorio de Arq0 2017
 --
 -- Banco completo de registros del microprocesador MIPS
 ----------------------------------------------------------------------
@@ -15,23 +15,23 @@ use ieee.std_logic_arith.all;
 entity reg_bank is
    port (
       Clk   : in std_logic; -- Reloj activo en flanco de subida
-      Reset : in std_logic; -- Reset asï¿½ncrono a nivel alto
-      A1    : in std_logic_vector(4 downto 0);   -- Direcciï¿½n para el puerto Rd1
+      Reset : in std_logic; -- Reset asíncrono a nivel alto
+      A1    : in std_logic_vector(4 downto 0);   -- Dirección para el puerto Rd1
       Rd1   : out std_logic_vector(31 downto 0); -- Dato del puerto Rd1
-      A2    : in std_logic_vector(4 downto 0);   -- Direcciï¿½n para el puerto Rd2
+      A2    : in std_logic_vector(4 downto 0);   -- Dirección para el puerto Rd2
       Rd2   : out std_logic_vector(31 downto 0); -- Dato del puerto Rd2
-      A3    : in std_logic_vector(4 downto 0);   -- Direcciï¿½n para el puerto Wd3
+      A3    : in std_logic_vector(4 downto 0);   -- Dirección para el puerto Wd3
       Wd3   : in std_logic_vector(31 downto 0);  -- Dato de entrada Wd3
-      We3   : in std_logic -- Habilitaciï¿½n de la escritura de Wd3
+      We3   : in std_logic -- Habilitación de la escritura de Wd3
    ); 
 end reg_bank;
 
 architecture rtl of reg_bank is
 
    -- Tipo y senial para almacenar los registros
-   type regs_type is array (0 to 31) of std_logic_vector(31 downto 0);
+   type regs_t is array (0 to 31) of std_logic_vector(31 downto 0);
 
-   signal regs : regs_type;
+   signal regs : regs_t;
 
 begin
 
@@ -52,16 +52,21 @@ begin
             end if;
          end if;
       end if;
-   end process;
+	end process;
 
    ------------------------------------------------------
    -- Lectura de registros
    ------------------------------------------------------
-   Rd1 <= Wd3 when (A1 /= "00000" and We3 = '1' and A3 = A1) else
-          regs(conv_integer(A1));
+	
+   -- Cuando write enable activado (se va a escribir en registro),
+   -- y el registro en que se escribe no es el cero,
+   -- y se quiere leer el mismo numero de registro que se va a escribir
+   -- entonces entregamos a rd1 el valor a escribir (wd3)
+   Rd1 <= Wd3 when We3 = '1' and A3 /= "00000" and A1 = A3 else
+			regs(conv_integer(A1));
 
-   Rd2 <= Wd3 when (A2 /= "00000" and We3 = '1' and A3 = A2) else
-          regs(conv_integer(A2));
+   Rd2 <= Wd3 when We3 = '1' and A3 /= "00000" and A2 = A3 else
+			regs(conv_integer(A2));
 
 end architecture;
 

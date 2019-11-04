@@ -1,7 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Universidad Autonoma de Madrid
 -- Escuela Politecnica Superior
--- Laboratorio de ARQ0 2019-2020
+-- Laboratorio de ARQ0 2017
 --
 -- Testbench simple para el procesador.
 ---------------------------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ entity processor_tb is
    generic (
       INIT_FILENAME_INST : string   := "instrucciones"; -- Fichero con las instrucciones
       INIT_FILENAME_DATA : string   := "datos";         -- Fichero con los datos
-      N_CYCLES           : positive := 100              -- Numero de ciclos a ejecutar
+      N_CYCLES           : positive := 200              -- Numero de ciclos a ejecutar
    );
 end processor_tb;
 

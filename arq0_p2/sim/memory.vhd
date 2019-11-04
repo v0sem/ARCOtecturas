@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- Universidad Autonoma de Madrid
 -- Escuela Politecnica Superior
--- Laboratorio de Arq0 2019-2020
+-- Laboratorio de Arq0 2017
 --
 -- Memoria sincrona simple.
 --------------------------------------------------------------------------------
