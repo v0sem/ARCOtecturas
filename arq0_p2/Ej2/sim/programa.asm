@@ -25,13 +25,12 @@ main:
   nop
   nop
   nop
-  nop
-  add $t3, $t2, $t5 # 12 + 4 = 16 Salto no Efectivo
-  beq $t3, $t5, jmp1
-  nop
+  add $t3, $t2, $t5 # 16 + 2 = 18 Salto no Efectivo
+  beq $t3, $t6, jmp1
   nop
   nop
-  add $t3, $t2, $t5 # 12 + 4 = 16 Salto Efectivo
+  nop
+  add $t3, $t2, $t5 # 16 + 2 = 18 Salto Efectivo
   beq $t3, $t3, jmp2
   jmp1: add $t1, $t2, $t3
   nop
@@ -53,4 +52,5 @@ main:
   nop
   nop
   nop
-  jmp4: add $t7, $t6, $t5
+  jmp4: add $t7, $t1, $t2
+  fin: nop

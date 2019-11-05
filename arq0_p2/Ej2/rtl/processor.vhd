@@ -178,8 +178,8 @@ BranchAdd <= Shift2 + Add4_ex;
 Add4 <= AuxAddr + 4;
 
 Mux1 <= BranchAdd_mem when ZBranch = '1' and Jump_mem = '0' else 
-		Add4 when ZBranch = '0' and Jump_mem = '0' else
-		JumpAddr_mem;
+		JumpAddr_mem when ZBranch = '0' and Jump_mem = '1' else
+		Add4;
 
 JumpAddr <= Add4_id(31 downto 28) & Ittr_id(25 downto 0) & "00";
 
@@ -229,9 +229,9 @@ process (Clk, Reset, Bub)
 	end if;
 end process;
 
-process (Clk, Reset, Bub)
+process (Clk, Reset, Bub, ZBranch)
 	begin
-		if Reset = '1' then
+		if Reset = '1' or ZBranch = '1' then
 			Add4_id <= (others => '0');
 			Ittr_id <= (others => '0');
 		elsif rising_edge(Clk) and Bub = '0' then
@@ -240,9 +240,9 @@ process (Clk, Reset, Bub)
 		end if;
 end process;
 
-process (Clk, Reset, Bub)
+process (Clk, Reset, Bub, ZBranch)
 	begin
-		if Reset = '1' or (Bub = '1' and rising_edge(Clk)) then
+		if Reset = '1' or (Bub = '1' and rising_edge(Clk)) or ZBranch = '1' then
 			WBRegWrite_ex <= '0';
 			WBMemToReg_ex <= '0';
 			MBranch_ex <= '0';
