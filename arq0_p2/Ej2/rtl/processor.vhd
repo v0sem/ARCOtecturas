@@ -281,9 +281,9 @@ process (Clk, Reset, Bub)
 		end if;
 end process;
 
-process (Clk, Reset)
+process (Clk, Reset, ZBranch)
 	begin
-		if Reset = '1' then
+		if Reset = '1' or ZBranch = '1' then
 			WBRegWrite_mem <= '0';
 			WBMemToReg_mem <= '0';
 			Branch_mem <= '0';
