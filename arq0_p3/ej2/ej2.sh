@@ -5,8 +5,8 @@
 #$ -j y
 
 #Iniciar Valgrind
-export PATH=$PATH:/share/apps/tools/vagrind/bin
-export VALGRIND_LIB=/share/apps/tools/valgrind/lib/valgrind
+#export PATH=$PATH:/share/apps/tools/valgrind/bin
+#export VALGRIND_LIB=/share/apps/tools/valgrind/lib/valgrind
 
 #Variables generales
 P=$((3%7+4))
@@ -19,12 +19,7 @@ N2=$((100+512))
 N=0
 Nstep=64
 
-touch slow.out
-touch fast.out
-touch cache_1024.dat
-touch cache_2048.dat
-touch cache_4096.dat
-touch cache_8192.dat
+rm cache_*
 
 for ((N = N1 ; N <= N2 ; N += Nstep)); do
 	
