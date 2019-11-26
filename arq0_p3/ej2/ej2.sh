@@ -5,17 +5,15 @@
 #$ -j y
 
 #Iniciar Valgrind
-#export PATH=$PATH:/share/apps/tools/valgrind/bin
-#export VALGRIND_LIB=/share/apps/tools/valgrind/lib/valgrind
+export PATH=$PATH:/share/apps/tools/valgrind/bin
+export VALGRIND_LIB=/share/apps/tools/valgrind/lib/valgrind
 
 #Variables generales
 P=$((3%7+4))
 
-#Variables ej 1
+#Variables ej 2
 N1=$((2000 + 512 * P))
 N2=$((2000 + 512 * (P+1)))
-N1=100
-N2=$((100+512))
 N=0
 Nstep=64
 
