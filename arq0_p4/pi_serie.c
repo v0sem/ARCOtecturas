@@ -1,5 +1,5 @@
 /*********************************************************/
-/*Cálculo PI: Método de integración - Version secuencial */
+/*Cï¿½lculo PI: Mï¿½todo de integraciï¿½n - Version secuencial */
 /*********************************************************/
 
 #include <sys/time.h>

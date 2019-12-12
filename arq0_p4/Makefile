@@ -24,6 +24,21 @@ pescalar_par2: pescalar_par2.c arqo4.c
 ej2: ej2.c arqo4.c
 	gcc $(FLAGS) $(LIB_DIR) -o $@ $^ $(LIBS)
 
+pi_serie: pi_serie.c arqo4.c
+	gcc $(FLAGS) $(LIB_DIR) -o $@ $^ $(LIBS)
+
+pi_par1: pi_par1.c arqo4.c
+	gcc $(FLAGS) $(LIB_DIR) -o $@ $^ $(LIBS)
+
+pi_par2: pi_par2.c arqo4.c
+	gcc $(FLAGS) $(LIB_DIR) -o $@ $^ $(LIBS)
+
+pi_par3: pi_par3.c arqo4.c
+	gcc $(FLAGS) $(LIB_DIR) -o $@ $^ $(LIBS)
+
+pi_par4: pi_par4.c arqo4.c
+	gcc $(FLAGS) $(LIB_DIR) -o $@ $^ $(LIBS)
+
 clean:
 	rm -f *.o *~ omp1 omp2 pescalar_serie pescalar_par1 pescalar_par2
 	
